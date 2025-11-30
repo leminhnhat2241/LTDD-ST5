@@ -3,6 +3,7 @@ import 'package:leminhnhat_2198/AlarmClockScreen.dart';
 import 'package:leminhnhat_2198/InformationScreen.dart';
 import 'package:leminhnhat_2198/StopwatchScreen.dart';
 import 'package:leminhnhat_2198/TemperatureConverterScreen.dart';
+import 'package:leminhnhat_2198/TranslateScreen.dart';
 import 'package:leminhnhat_2198/UnitConverterScreen.dart';
 import 'package:leminhnhat_2198/YouTubePlayerScreen.dart';
 
@@ -22,11 +23,8 @@ class _HomeScreenState extends State<HomeScreen> {
     YouTubePlayerScreen(), //giao diện youtube
     AlarmClockScreen(), // giao diện đồng hồ báo thức
     StopwatchScreen(), //giao diện đồng hồ bấm giờ
-    // //giao diện thông tin cá nhân
-    InformationScreen(),
-    // SettingsScreen(), // giao diện cài đặt
-    //const Center(child: Text('Thông tin cá nhân', style: TextStyle(fontSize: 24))),
-    //const Center(child: Text('Cài đặt', style: TextStyle(fontSize: 24))), // giao diện cài đặt
+    TranslateScreen(), //giao diện dịch thuật
+    InformationScreen(), //giao diện thông tin cá nhân
   ];
 
   void _onItemTapped(int index) {
@@ -97,6 +95,11 @@ class _HomeScreenState extends State<HomeScreen> {
               label: 'Bấm giờ',
             ),
             BottomNavigationBarItem(
+              icon: Icon(Icons.translate_outlined, size: 20),
+              activeIcon: Icon(Icons.translate, size: 20),
+              label: 'Dịch',
+            ),
+            BottomNavigationBarItem(
               icon: Icon(Icons.info_outlined, size: 20),
               activeIcon: Icon(Icons.info, size: 20),
               label: 'Thông tin',
@@ -105,8 +108,8 @@ class _HomeScreenState extends State<HomeScreen> {
           currentIndex: _selectedIndex,
           selectedItemColor: Colors.blue.shade700,
           unselectedItemColor: Colors.grey.shade600,
-          selectedFontSize: 10,
-          unselectedFontSize: 9,
+          selectedFontSize: 9,
+          unselectedFontSize: 8,
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
           elevation: 0,
