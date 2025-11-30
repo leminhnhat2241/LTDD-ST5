@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:permission_handler/permission_handler.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:leminhnhat_2198/RealtimeTranslateScreen.dart';
+import 'package:leminhnhat_2198/ImageTranslateOverlayScreen.dart';
 
 class TranslateScreen extends StatefulWidget {
   const TranslateScreen({super.key});
@@ -12,6 +19,11 @@ class _TranslateScreenState extends State<TranslateScreen> {
   final TextEditingController _textController = TextEditingController();
   String _translatedText = '';
   bool _isTranslating = false;
+  bool _isListening = false;
+  bool _isRecognizing = false;
+
+  late stt.SpeechToText _speech;
+  final ImagePicker _imagePicker = ImagePicker();
 
   TranslateLanguage _sourceLanguage = TranslateLanguage.vietnamese;
   TranslateLanguage _targetLanguage = TranslateLanguage.english;
@@ -30,16 +42,164 @@ class _TranslateScreenState extends State<TranslateScreen> {
     TranslateLanguage.thai: 'ไทย',
   };
 
+  final Map<TranslateLanguage, String> _localeIds = {
+    TranslateLanguage.vietnamese: 'vi_VN',
+    TranslateLanguage.english: 'en_US',
+    TranslateLanguage.chinese: 'zh_CN',
+    TranslateLanguage.japanese: 'ja_JP',
+    TranslateLanguage.korean: 'ko_KR',
+    TranslateLanguage.french: 'fr_FR',
+    TranslateLanguage.german: 'de_DE',
+    TranslateLanguage.spanish: 'es_ES',
+    TranslateLanguage.thai: 'th_TH',
+  };
+
   @override
   void initState() {
     super.initState();
     _initTranslator();
+    _initSpeech();
+  }
+
+  void _initSpeech() async {
+    _speech = stt.SpeechToText();
+    await _speech.initialize();
   }
 
   void _initTranslator() async {
     _translator = OnDeviceTranslator(
       sourceLanguage: _sourceLanguage,
       targetLanguage: _targetLanguage,
+    );
+  }
+
+  Future<void> _startListening() async {
+    // Kiểm tra quyền microphone
+    var status = await Permission.microphone.status;
+    if (!status.isGranted) {
+      status = await Permission.microphone.request();
+      if (!status.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Cần cấp quyền microphone để sử dụng chức năng này',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+    }
+
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (status) {
+          if (status == 'done' || status == 'notListening') {
+            setState(() => _isListening = false);
+          }
+        },
+        onError: (error) {
+          setState(() => _isListening = false);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Lỗi: ${error.errorMsg}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+      );
+
+      if (available) {
+        setState(() => _isListening = true);
+
+        String localeId = _localeIds[_sourceLanguage] ?? 'vi_VN';
+
+        _speech.listen(
+          onResult: (result) {
+            setState(() {
+              _textController.text = result.recognizedWords;
+            });
+          },
+          localeId: localeId,
+          listenMode: stt.ListenMode.confirmation,
+        );
+      }
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
+    }
+  }
+
+  Future<void> _pickImageAndRecognize(ImageSource source) async {
+    try {
+      setState(() => _isRecognizing = true);
+
+      final XFile? image = await _imagePicker.pickImage(source: source);
+
+      if (image == null) {
+        setState(() => _isRecognizing = false);
+        return;
+      }
+
+      setState(() => _isRecognizing = false);
+
+      // Navigate to image overlay screen
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ImageTranslateOverlayScreen(
+              imagePath: image.path,
+              sourceLanguage: _sourceLanguage,
+              targetLanguage: _targetLanguage,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isRecognizing = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Chọn nguồn ảnh'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: Colors.blue),
+              title: const Text('Chụp ảnh'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImageAndRecognize(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: Colors.green),
+              title: const Text('Chọn từ thư viện'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImageAndRecognize(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -105,6 +265,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
   void dispose() {
     _translator?.close();
     _textController.dispose();
+    _speech.stop();
     super.dispose();
   }
 
@@ -129,6 +290,20 @@ class _TranslateScreenState extends State<TranslateScreen> {
             ),
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.videocam),
+            tooltip: 'Dịch Realtime',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const RealtimeTranslateScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -212,6 +387,31 @@ class _TranslateScreenState extends State<TranslateScreen> {
                               color: Colors.blue.shade900,
                             ),
                           ),
+                          const Spacer(),
+                          // Nút camera
+                          IconButton(
+                            onPressed: _showImageSourceDialog,
+                            icon: Icon(
+                              Icons.camera_alt,
+                              color: Colors.blue.shade700,
+                              size: 28,
+                            ),
+                            tooltip: 'Chụp ảnh để nhận dạng',
+                          ),
+                          // Nút microphone
+                          IconButton(
+                            onPressed: _startListening,
+                            icon: Icon(
+                              _isListening ? Icons.mic : Icons.mic_none,
+                              color: _isListening
+                                  ? Colors.red
+                                  : Colors.blue.shade700,
+                              size: 28,
+                            ),
+                            tooltip: _isListening
+                                ? 'Đang nghe...'
+                                : 'Nhấn để nói',
+                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -235,6 +435,70 @@ class _TranslateScreenState extends State<TranslateScreen> {
                           fillColor: Colors.blue.shade50,
                         ),
                       ),
+                      // Listening indicator
+                      if (_isListening)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.mic, color: Colors.red, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Đang nghe...',
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.red,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      // Recognizing indicator
+                      if (_isRecognizing)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.camera_alt,
+                                color: Colors.blue,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Đang nhận dạng...',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.blue,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),

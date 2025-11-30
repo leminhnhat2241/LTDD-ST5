@@ -6,6 +6,7 @@ import 'package:leminhnhat_2198/TemperatureConverterScreen.dart';
 import 'package:leminhnhat_2198/TranslateScreen.dart';
 import 'package:leminhnhat_2198/UnitConverterScreen.dart';
 import 'package:leminhnhat_2198/YouTubePlayerScreen.dart';
+import 'package:leminhnhat_2198/GroupInfoScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
     AlarmClockScreen(), // giao diện đồng hồ báo thức
     StopwatchScreen(), //giao diện đồng hồ bấm giờ
     TranslateScreen(), //giao diện dịch thuật
+    GroupInfoScreen(), //giao diện thông tin nhóm
     InformationScreen(), //giao diện thông tin cá nhân
   ];
 
@@ -100,9 +102,14 @@ class _HomeScreenState extends State<HomeScreen> {
               label: 'Dịch',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.info_outlined, size: 20),
-              activeIcon: Icon(Icons.info, size: 20),
-              label: 'Thông tin',
+              icon: Icon(Icons.groups_outlined, size: 20),
+              activeIcon: Icon(Icons.groups, size: 20),
+              label: 'Nhóm',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outlined, size: 20),
+              activeIcon: Icon(Icons.person, size: 20),
+              label: 'Cá nhân',
             ),
           ],
           currentIndex: _selectedIndex,
