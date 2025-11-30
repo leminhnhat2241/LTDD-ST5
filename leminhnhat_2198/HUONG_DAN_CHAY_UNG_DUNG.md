@@ -4,14 +4,14 @@
 
 1. ⚡ **Chuyển đổi nhiệt độ** (Celsius, Fahrenheit, Kelvin)
 2. 📏 **Chuyển đổi đơn vị đo** (Mét, Feet, Km, Dặm)
-3. 📺 **Xem video YouTube**
-4. ⏰ **Đồng hồ báo thức** có âm thanh
-5. ⏱️ **Đồng hồ bấm giờ** (Stopwatch)
-6. 🎤 **Điều khiển giọng nói** (Voice control) cho báo thức và bấm giờ
+3. 📺 **Xem video YouTube** (hỗ trợ cả Android và Web)
+4. ⏰ **Đồng hồ báo thức** có âm thanh + Voice control
+5. ⏱️ **Đồng hồ bấm giờ** (Stopwatch) + Voice control
+6. 🎤 **Điều khiển giọng nói toàn cục** - Tự động chuyển màn hình khi gọi tên chức năng
 
 ---
 
-## 🌐 Cách 1: Chạy trên Chrome (ĐỀ XUẤT)
+## 🌐 Cách 1: Chạy trên Chrome
 
 ### Bước 1: Mở terminal và chạy
 
@@ -23,6 +23,7 @@ flutter run -d chrome
 
 - Ứng dụng sẽ tự động mở trong trình duyệt Chrome
 - Video YouTube hoạt động tốt trên web
+- ⚠️ Voice control KHÔNG hoạt động trên web
 
 ---
 
@@ -51,7 +52,8 @@ flutter run -d windows
 ### ⚠️ Lưu ý về Windows:
 
 - **Voice control** KHÔNG hoạt động trên Windows desktop
-- YouTube player có thể gặp vấn đề WebView
+- **YouTube player** hoạt động bình thường (dùng youtube_player_flutter)
+- Tất cả chức năng chuyển đổi và đồng hồ hoạt động tốtew
 - Đề xuất sử dụng Chrome thay vì Windows
 
 ---
@@ -77,35 +79,36 @@ flutter run -d <device_id>
 
 ### ✅ Trên Android, TẤT CẢ tính năng hoạt động:
 
-- ✅ Voice control (báo thức & bấm giờ)
-- ✅ YouTube player
+- ✅ Voice control toàn cục (chuyển màn hình tự động)
+- ✅ Voice control cho báo thức (hẹn báo thức, hủy)
+- ✅ Voice control cho bấm giờ (bắt đầu, dừng, vòng, reset)
+- ✅ YouTube player phát video trong app
 - ✅ Âm thanh báo thức
-- ✅ Tất cả chuyển đổi
-
----
+- ✅ Tất cả chức năng chuyển đổi
 
 ## 🎤 Hướng dẫn sử dụng Voice Control
 
-### Đồng hồ báo thức:
+### 🏠 Điều khiển toàn cục (Màn hình chính):
 
-- 🗣️ **"Đặt báo thức 7 giờ"**
-- 🗣️ **"Đặt báo thức 14 giờ 30"**
-- 🗣️ **"Hủy báo thức"**
+Nhấn icon microphone trên AppBar, sau đó nói:
 
-### Đồng hồ bấm giờ:
+- 🗣️ **"Nhiệt độ"** → Chuyển đến màn hình chuyển đổi nhiệt độ
+- 🗣️ **"Đơn vị"** → Chuyển đến màn hình chuyển đổi đơn vị
+- 🗣️ **"YouTube"** hoặc **"Video"** → Chuyển đến màn hình xem video
+- 🗣️ **"Báo thức"** → Chuyển đến màn hình đồng hồ báo thức
+- 🗣️ **"Bấm giờ"** → Chuyển đến màn hình đồng hồ bấm giờ
 
-- 🗣️ **"Bắt đầu"** hoặc "Start"
-- 🗣️ **"Dừng"** hoặc "Stop"
-- 🗣️ **"Vòng"** (ghi lại vòng)
-- 🗣️ **"Đặt lại"** hoặc "Reset"
+### ⏰ Đồng hồ báo thức:
 
-### ⚠️ Lưu ý Voice:
+- 🗣️ **"Hẹn báo thức 7 giờ 30"** → Tự động đặt và kích hoạt báo thức
+- 🗣️ **"Đặt báo thức 14 giờ 30"** → Tự động đặt và kích hoạt báo thức
+- 🗣️ **"Đặt báo thức 7:30"** → Hỗ trợ cả format giờ:phút
+- 🗣️ **"Hủy báo thức"** → Hủy báo thức đã đặt
 
-- Chỉ hoạt động trên **Android/iOS**
-- Cần quyền **Microphone**
-- Cần **Internet** để nhận dạng giọng nói
+### ⏱️ Đồng hồ bấm giờ:
 
----
+- 🗣️ **"Bắt đầu"** hoặc "Start" → Khởi động stopwatch
+- 🗣️ **"Dừng"** hoặc "Stop" → Tạm dừng
 
 ## 📺 Hướng dẫn xem YouTube
 
@@ -114,8 +117,31 @@ flutter run -d <device_id>
 - `https://www.youtube.com/watch?v=VIDEO_ID`
 - `https://youtu.be/VIDEO_ID`
 - `https://www.youtube.com/embed/VIDEO_ID`
+- `https://www.youtube.com/v/VIDEO_ID`
 
-### Trên Web (Chrome):
+### Cách sử dụng:
+
+1. Copy link video từ YouTube
+2. Dán vào ô nhập liệu
+3. Nhấn nút **"Phát video"**
+4. Video sẽ phát trực tiếp trong ứng dụng (cả Android và Web)
+5. Có nút **icon ⤴** trên AppBar để mở trong YouTube app/web
+
+### Tính năng:
+
+- ✅ Thanh progress bar màu đỏ
+- ✅ Nút điều khiển: play/pause, tua, tốc độ phát
+- ✅ Nút full screen
+- ✅ Hiển thị thời gian hiện tại và còn lại
+
+### Lỗi: YouTube không phát
+
+**Giải pháp:**
+
+- Kiểm tra kết nối Internet
+- Đảm bảo link YouTube hợp lệ
+- Thử link YouTube khác
+- Video có thể bị chặn ở một số quốc gia
 
 - Video phát trực tiếp trong ứng dụng
 
@@ -127,35 +153,38 @@ flutter run -d <device_id>
 
 ## 🔧 Khắc phục sự cố
 
-### Lỗi: "Building with plugins requires symlink support"
+## 🚀 Khuyến nghị
 
-**Giải pháp:** Bật Developer Mode hoặc chạy trên Chrome
+| Nền tảng    | YouTube | Voice     | Báo thức | Khuyến nghị              |
+| ----------- | ------- | --------- | -------- | ------------------------ |
+| **Chrome**  | ✅ Tốt  | ❌ Không  | ✅ OK    | ⭐⭐⭐⭐ Phát triển/Test |
+| **Windows** | ✅ Tốt  | ❌ Không  | ✅ OK    | ⭐⭐⭐⭐ Cần Dev Mode    |
+| **Android** | ✅ Tốt  | ✅ Đầy đủ | ✅ Tốt   | ⭐⭐⭐⭐⭐ Tốt nhất      |
 
-### Lỗi: YouTube không phát
+### 🎯 Lựa chọn tốt nhất:
 
-**Giải pháp:**
-
-- Kiểm tra kết nối Internet
-- Chạy trên Chrome thay vì Windows
-- Thử link YouTube khác
+1. **Trải nghiệm đầy đủ**: Dùng **Android** (có Voice control toàn cục)
+2. **Phát triển/Test nhanh**: Dùng **Chrome**
+3. **Windows Desktop**: OK nhưng không có Voice
 
 ### Lỗi: Voice không hoạt động
 
 **Giải pháp:**
 
 - Chỉ hoạt động trên thiết bị thật (Android/iOS)
-- Không hỗ trợ trên Windows/Web
-- Cấp quyền Microphone
 
----
+## 📦 Packages đã sử dụng
 
-## 🚀 Khuyến nghị
-
-| Nền tảng    | YouTube | Voice    | Báo thức | Khuyến nghị         |
-| ----------- | ------- | -------- | -------- | ------------------- |
-| **Chrome**  | ✅ Tốt  | ❌ Không | ✅ OK    | ⭐⭐⭐⭐⭐ Tốt nhất |
-| **Windows** | ⚠️ Khó  | ❌ Không | ✅ OK    | ⭐⭐⭐ Cần Dev Mode |
-| **Android** | ✅ Tốt  | ✅ Tốt   | ✅ Tốt   | ⭐⭐⭐⭐⭐ Đầy đủ   |
+```yaml
+dependencies:
+  cupertino_icons: ^1.0.8 # Icons Material & Cupertino
+  youtube_player_flutter: ^9.0.3 # YouTube player (Android & Web)
+  audioplayers: ^6.1.0 # Phát âm thanh báo thức
+  intl: ^0.19.0 # Format ngày giờ
+  speech_to_text: ^7.0.0 # Nhận diện giọng nói
+  permission_handler: ^11.3.1 # Quản lý quyền (microphone)
+  url_launcher: ^6.3.1 # Mở link YouTube external
+```
 
 ### 🎯 Lựa chọn tốt nhất:
 
