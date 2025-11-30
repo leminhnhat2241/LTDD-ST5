@@ -23,24 +23,6 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
     super.dispose();
   }
 
-  String? _extractVideoId(String url) {
-    // Xử lý các định dạng URL YouTube khác nhau
-    final patterns = [
-      RegExp(r'youtube\.com/watch\?v=([^&]+)'),
-      RegExp(r'youtu\.be/([^?]+)'),
-      RegExp(r'youtube\.com/embed/([^?]+)'),
-      RegExp(r'youtube\.com/v/([^?]+)'),
-    ];
-
-    for (var pattern in patterns) {
-      final match = pattern.firstMatch(url);
-      if (match != null && match.groupCount >= 1) {
-        return match.group(1);
-      }
-    }
-    return null;
-  }
-
   void _loadVideo() {
     setState(() {
       _errorMessage = null;
