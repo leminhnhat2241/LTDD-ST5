@@ -1,10 +1,6 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html show IFrameElement;
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:ui_web' as ui_web;
 
 class YouTubePlayerScreen extends StatefulWidget {
   const YouTubePlayerScreen({Key? key}) : super(key: key);
@@ -15,23 +11,14 @@ class YouTubePlayerScreen extends StatefulWidget {
 
 class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
   final TextEditingController _urlController = TextEditingController();
+  YoutubePlayerController? _controller;
   String? _errorMessage;
   bool _isPlayerReady = false;
   String? _currentVideoId;
-  String _iframeViewType = '';
-
-  @override
-  void initState() {
-    super.initState();
-    if (kIsWeb) {
-      // Register iframe view for web
-      _iframeViewType =
-          'youtube-player-${DateTime.now().millisecondsSinceEpoch}';
-    }
-  }
 
   @override
   void dispose() {
+    _controller?.dispose();
     _urlController.dispose();
     super.dispose();
   }
@@ -64,7 +51,7 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
       }
 
       // Extract video ID from URL
-      final videoId = _extractVideoId(_urlController.text);
+      final videoId = YoutubePlayer.convertUrlToId(_urlController.text);
 
       if (videoId == null) {
         _errorMessage =
@@ -74,21 +61,20 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
 
       _currentVideoId = videoId;
 
-      if (kIsWeb) {
-        // Register iframe for web platform
-        _iframeViewType =
-            'youtube-player-${DateTime.now().millisecondsSinceEpoch}';
-        ui_web.platformViewRegistry.registerViewFactory(_iframeViewType, (
-          int viewId,
-        ) {
-          final iframe = html.IFrameElement()
-            ..src = 'https://www.youtube.com/embed/$videoId?autoplay=1'
-            ..style.border = 'none'
-            ..style.width = '100%'
-            ..style.height = '100%';
-          return iframe;
-        });
-      }
+      // Dispose old controller if exists
+      _controller?.dispose();
+
+      // Create new YouTube player controller
+      _controller = YoutubePlayerController(
+        initialVideoId: videoId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: true,
+          mute: false,
+          enableCaption: true,
+          controlsVisibleAtStart: true,
+          hideControls: false,
+        ),
+      );
 
       _isPlayerReady = true;
     });
@@ -96,6 +82,8 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
 
   void _clearVideo() {
     setState(() {
+      _controller?.dispose();
+      _controller = null;
       _urlController.clear();
       _errorMessage = null;
       _isPlayerReady = false;
@@ -223,12 +211,10 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
                 ],
               ),
               const SizedBox(height: 30),
-              if (_isPlayerReady && _currentVideoId != null)
+              if (_isPlayerReady && _controller != null)
                 Container(
-                  height: 400,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    color: Colors.black,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.3),
@@ -239,38 +225,36 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: kIsWeb
-                        ? HtmlElementView(viewType: _iframeViewType)
-                        : Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.video_library,
-                                  size: 80,
-                                  color: Colors.white54,
-                                ),
-                                const SizedBox(height: 20),
-                                const Text(
-                                  'Video player chỉ hỗ trợ trên Web',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                ElevatedButton.icon(
-                                  onPressed: _openInYouTube,
-                                  icon: const Icon(Icons.open_in_new),
-                                  label: const Text('Mở trong YouTube'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
+                    child: YoutubePlayer(
+                      controller: _controller!,
+                      showVideoProgressIndicator: true,
+                      progressIndicatorColor: Colors.red,
+                      progressColors: const ProgressBarColors(
+                        playedColor: Colors.red,
+                        handleColor: Colors.redAccent,
+                        bufferedColor: Colors.grey,
+                        backgroundColor: Colors.black,
+                      ),
+                      onReady: () {
+                        print('YouTube Player is ready');
+                      },
+                      onEnded: (data) {
+                        print('Video ended: ${data.videoId}');
+                      },
+                      bottomActions: [
+                        CurrentPosition(),
+                        ProgressBar(
+                          isExpanded: true,
+                          colors: const ProgressBarColors(
+                            playedColor: Colors.red,
+                            handleColor: Colors.redAccent,
                           ),
+                        ),
+                        RemainingDuration(),
+                        const PlaybackSpeedButton(),
+                        FullScreenButton(),
+                      ],
+                    ),
                   ),
                 )
               else

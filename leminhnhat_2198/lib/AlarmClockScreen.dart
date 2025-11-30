@@ -109,37 +109,7 @@ class _AlarmClockScreenState extends State<AlarmClockScreen> {
   void _processVoiceCommand(String command) {
     print('Voice command: $command');
 
-    // Đặt báo thức - "đặt báo thức 7 giờ", "báo thức 14 giờ 30"
-    final timeRegex = RegExp(r'(\d+)\s*giờ\s*(\d*)\s*phút?');
-    final match = timeRegex.firstMatch(command);
-
-    if (match != null) {
-      int hour = int.parse(match.group(1)!);
-      int minute = match.group(2)!.isNotEmpty ? int.parse(match.group(2)!) : 0;
-
-      if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
-        setState(() {
-          _selectedTime = TimeOfDay(hour: hour, minute: minute);
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Đã đặt báo thức ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
-            ),
-            backgroundColor: Colors.green,
-            action: SnackBarAction(
-              label: 'Kích hoạt',
-              textColor: Colors.white,
-              onPressed: _setAlarm,
-            ),
-          ),
-        );
-        return;
-      }
-    }
-
-    // Hủy báo thức
+    // Hủy báo thức trước khi xử lý lệnh mới
     if (command.contains('hủy') || command.contains('tắt báo thức')) {
       if (_isAlarmSet) {
         _cancelAlarm();
@@ -153,13 +123,82 @@ class _AlarmClockScreenState extends State<AlarmClockScreen> {
       return;
     }
 
+    // Đặt/Hẹn báo thức - hỗ trợ nhiều format
+    // "đặt báo thức 7 giờ", "hẹn báo thức 14 giờ 30", "báo thức 7:30"
+    bool isSetAlarmCommand =
+        command.contains('đặt') ||
+        command.contains('hẹn') ||
+        command.contains('báo thức');
+
+    // Pattern 1: "X giờ Y phút" hoặc "X giờ Y"
+    final timeRegex1 = RegExp(r'(\d+)\s*giờ\s*(\d*)\s*phút?');
+    final match1 = timeRegex1.firstMatch(command);
+
+    // Pattern 2: "X:Y" (format 7:30)
+    final timeRegex2 = RegExp(r'(\d+):(\d+)');
+    final match2 = timeRegex2.firstMatch(command);
+
+    int? hour;
+    int? minute;
+
+    if (match1 != null) {
+      hour = int.parse(match1.group(1)!);
+      minute = match1.group(2)!.isNotEmpty ? int.parse(match1.group(2)!) : 0;
+    } else if (match2 != null) {
+      hour = int.parse(match2.group(1)!);
+      minute = int.parse(match2.group(2)!);
+    }
+
+    if (hour != null &&
+        minute != null &&
+        hour >= 0 &&
+        hour <= 23 &&
+        minute >= 0 &&
+        minute <= 59) {
+      setState(() {
+        _selectedTime = TimeOfDay(hour: hour!, minute: minute!);
+      });
+
+      // Tự động kích hoạt báo thức nếu có từ khóa đặt/hẹn
+      if (isSetAlarmCommand) {
+        _setAlarm();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Đã hẹn báo thức ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        // Chỉ hiển thị thời gian, yêu cầu xác nhận
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Đã chọn ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}. Nhấn "Đặt báo thức" để kích hoạt',
+            ),
+            backgroundColor: Colors.orange,
+            action: SnackBarAction(
+              label: 'Kích hoạt',
+              textColor: Colors.white,
+              onPressed: _setAlarm,
+            ),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+      return;
+    }
+
     // Không nhận diện được lệnh
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-          'Không nhận diện được lệnh. Thử nói: "đặt báo thức 7 giờ 30"',
+          'Không nhận diện được lệnh.\nThử nói: "Hẹn báo thức 7 giờ 30" hoặc "Đặt báo thức 14:30"',
         ),
         backgroundColor: Colors.orange,
+        duration: Duration(seconds: 3),
       ),
     );
   }

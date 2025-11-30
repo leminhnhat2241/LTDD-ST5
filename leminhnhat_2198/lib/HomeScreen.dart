@@ -1,12 +1,158 @@
 import 'package:flutter/material.dart';
-import 'package:leminhnhat_2198/TemperatureConverterScreen.dart';
-import 'package:leminhnhat_2198/UnitConverterScreen.dart';
-import 'package:leminhnhat_2198/YouTubePlayerScreen.dart';
-import 'package:leminhnhat_2198/AlarmClockScreen.dart';
-import 'package:leminhnhat_2198/StopwatchScreen.dart';
+import 'TemperatureConverterScreen.dart';
+import 'UnitConverterScreen.dart';
+import 'YouTubePlayerScreen.dart';
+import 'AlarmClockScreen.dart';
+import 'StopwatchScreen.dart';
+import 'package:speech_to_text/speech_to_text.dart'
+    as stt; // Thêm thư viện speech_to_text
+import 'package:permission_handler/permission_handler.dart'; // Thêm thư viện permission_handler
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  String _recognizedText = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _speech = stt.SpeechToText();
+  }
+
+  Future<void> _requestMicrophonePermission() async {
+    var status = await Permission.microphone.status;
+    if (!status.isGranted) {
+      await Permission.microphone.request();
+    }
+  }
+
+  Future<void> _startListening() async {
+    await _requestMicrophonePermission();
+
+    bool available = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'done' || status == 'notListening') {
+          setState(() => _isListening = false);
+        }
+      },
+      onError: (error) {
+        setState(() => _isListening = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: ${error.errorMsg}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      },
+    );
+
+    if (available) {
+      setState(() => _isListening = true);
+      _speech.listen(
+        onResult: (result) {
+          setState(() {
+            _recognizedText = result.recognizedWords.toLowerCase();
+          });
+          _processVoiceCommand(_recognizedText);
+        },
+        localeId: 'vi_VN',
+        cancelOnError: true,
+        listenMode: stt.ListenMode.confirmation,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không thể khởi động nhận diện giọng nói'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _stopListening() {
+    _speech.stop();
+    setState(() => _isListening = false);
+  }
+
+  void _processVoiceCommand(String command) {
+    // Chuyển đổi nhiệt độ
+    if (command.contains('nhiệt độ') ||
+        command.contains('chuyển đổi nhiệt') ||
+        command.contains('độ c') ||
+        command.contains('độ f')) {
+      _stopListening();
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => TemperatureConverterScreen()),
+      );
+      return;
+    }
+
+    // Chuyển đổi đơn vị
+    if (command.contains('đơn vị') ||
+        command.contains('chuyển đổi đơn') ||
+        command.contains('mét') ||
+        command.contains('feet') ||
+        command.contains('kilômét')) {
+      _stopListening();
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const UnitConverterScreen()),
+      );
+      return;
+    }
+
+    // YouTube
+    if (command.contains('youtube') ||
+        command.contains('video') ||
+        command.contains('xem video')) {
+      _stopListening();
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const YouTubePlayerScreen()),
+      );
+      return;
+    }
+
+    // Báo thức
+    if (command.contains('báo thức') ||
+        command.contains('đồng hồ báo') ||
+        command.contains('alarm') ||
+        command.contains('báo giờ')) {
+      _stopListening();
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AlarmClockScreen()),
+      );
+      return;
+    }
+
+    // Bấm giờ / Stopwatch
+    if (command.contains('bấm giờ') ||
+        command.contains('đồng hồ bấm') ||
+        command.contains('stopwatch') ||
+        command.contains('đo thời gian')) {
+      _stopListening();
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const StopwatchScreen()),
+      );
+      return;
+    }
+  }
+
+  @override
+  void dispose() {
+    _speech.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +162,14 @@ class HomeScreen extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.deepOrange,
         elevation: 4,
+        actions: [
+          IconButton(
+            icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
+            tooltip: _isListening ? 'Đang nghe...' : 'Điều khiển giọng nói',
+            onPressed: _isListening ? _stopListening : _startListening,
+            color: _isListening ? Colors.red : Colors.white,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -23,57 +177,47 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 20),
-              // Hiển thị ảnh từ thư mục assets với xử lý lỗi
-              Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(
-                    'images/school.jpg',
-                    width: 300,
-                    height: 200,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      print('Error loading image: $error');
-                      print('StackTrace: $stackTrace');
-                      return Container(
-                        width: 300,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.red, width: 2),
-                        ),
+              const SizedBox(height: 40),
+              // Hiển thị trạng thái nhận diện giọng nói
+              if (_isListening)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red, width: 2),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.mic, color: Colors.red, size: 28),
+                      const SizedBox(width: 12),
+                      Expanded(
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.broken_image,
-                              size: 50,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(height: 10),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
+                            const Text(
+                              'Đang nghe...',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red,
                               ),
-                              child: Text(
-                                'Không thể tải ảnh\nimages/school.jpg',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
+                            ),
+                            if (_recognizedText.isNotEmpty)
+                              Text(
+                                _recognizedText,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black87,
                                 ),
-                                textAlign: TextAlign.center,
                               ),
-                            ),
                           ],
                         ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 40),
+              if (_isListening) const SizedBox(height: 20),
               const Text(
                 'Chọn chức năng chuyển đổi:',
                 style: TextStyle(
@@ -82,6 +226,47 @@ class HomeScreen extends StatelessWidget {
                   color: Colors.deepOrange,
                 ),
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              // Hướng dẫn voice control
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.mic,
+                          size: 20,
+                          color: Colors.orange.shade700,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Điều khiển giọng nói:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange.shade900,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      '• "Nhiệt độ" - Chuyển đổi nhiệt độ\n'
+                      '• "Đơn vị" - Chuyển đổi đơn vị đo\n'
+                      '• "YouTube" hoặc "Video" - Xem video\n'
+                      '• "Báo thức" - Đồng hồ báo thức\n'
+                      '• "Bấm giờ" - Đồng hồ bấm giờ',
+                      style: TextStyle(fontSize: 12, height: 1.5),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
               // Nút chuyển đổi nhiệt độ
