@@ -4,7 +4,6 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'package:leminhnhat_2198/RealtimeTranslateScreen.dart';
 import 'package:leminhnhat_2198/ImageTranslateOverlayScreen.dart';
 
@@ -103,10 +102,44 @@ class _TranslateScreenState extends State<TranslateScreen> {
         onError: (error) {
           setState(() => _isListening = false);
           if (mounted) {
+            String errorMessage = 'Lỗi nhận dạng giọng nói';
+
+            // Xử lý các loại lỗi cụ thể
+            if (error.errorMsg.contains('network')) {
+              errorMessage =
+                  'Không có kết nối Internet.\nVui lòng kiểm tra kết nối mạng.';
+            } else if (error.errorMsg.contains('no-speech')) {
+              errorMessage = 'Không phát hiện giọng nói.\nVui lòng thử lại.';
+            } else if (error.errorMsg.contains('audio')) {
+              errorMessage =
+                  'Lỗi microphone.\nVui lòng kiểm tra quyền truy cập.';
+            } else if (error.errorMsg.contains('not-allowed')) {
+              errorMessage =
+                  'Quyền microphone bị từ chối.\nVui lòng cấp quyền trong cài đặt.';
+            }
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Lỗi: ${error.errorMsg}'),
-                backgroundColor: Colors.red,
+                content: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.white),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        errorMessage,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.red.shade700,
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 4),
+                action: SnackBarAction(
+                  label: 'Đóng',
+                  textColor: Colors.white,
+                  onPressed: () {},
+                ),
               ),
             );
           }
@@ -127,6 +160,29 @@ class _TranslateScreenState extends State<TranslateScreen> {
           localeId: localeId,
           listenMode: stt.ListenMode.confirmation,
         );
+      } else {
+        // Speech recognition không khả dụng
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.white),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Nhận dạng giọng nói không khả dụng.\nVui lòng kiểm tra kết nối Internet.',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.orange.shade700,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
       }
     } else {
       setState(() => _isListening = false);

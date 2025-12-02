@@ -210,457 +210,404 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
     String displayTime = _formatTime(_stopwatch.elapsed);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Đồng hồ bấm giờ'),
-        backgroundColor: Colors.teal,
-        elevation: 4,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 30),
-              // Hiển thị đồng hồ bấm giờ
-              Container(
-                padding: const EdgeInsets.all(40),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.teal.shade400, Colors.teal.shade700],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 15.0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header
+                Text(
+                  'Đồng hồ bấm giờ',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.teal.shade700,
                   ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.teal.withOpacity(0.4),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+                  textAlign: TextAlign.center,
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _stopwatch.isRunning ? Icons.timer : Icons.timer_outlined,
-                      size: 60,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      displayTime,
-                      style: const TextStyle(
-                        fontSize: 52,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 2,
-                        fontFamily: 'monospace',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 50),
-              // Nút điều khiển bằng giọng nói
-              Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: _isListening
-                        ? [Colors.red.shade300, Colors.red.shade500]
-                        : [Colors.teal.shade300, Colors.teal.shade500],
-                  ),
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: (_isListening ? Colors.red : Colors.teal)
-                          .withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          _isListening ? Icons.mic : Icons.mic_none,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          _isListening
-                              ? 'Đang nghe...'
-                              : 'Điều khiển bằng giọng nói',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (_voiceText.isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '"$_voiceText"',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontStyle: FontStyle.italic,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 15),
-                    ElevatedButton.icon(
-                      onPressed: _isListening
-                          ? _stopListeningVoice
-                          : _startListening,
-                      icon: Icon(_isListening ? Icons.stop : Icons.mic),
-                      label: Text(
-                        _isListening ? 'Dừng lắng nghe' : 'Nhấn để nói',
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: _isListening
-                            ? Colors.red
-                            : Colors.teal,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 15,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Nói: "Bắt đầu", "Dừng", "Vòng", "Đặt lại"',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white.withOpacity(0.9),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 30),
-              // Các nút điều khiển
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Nút Start/Stop
-                  Column(
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: _stopwatch.isRunning
-                              ? Colors.orange.shade700
-                              : Colors.green.shade600,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color:
-                                  (_stopwatch.isRunning
-                                          ? Colors.orange
-                                          : Colors.green)
-                                      .withOpacity(0.4),
-                              blurRadius: 15,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          onPressed: _stopwatch.isRunning
-                              ? _stopStopwatch
-                              : _startStopwatch,
-                          icon: Icon(
-                            _stopwatch.isRunning
-                                ? Icons.pause
-                                : Icons.play_arrow,
-                            size: 40,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        _stopwatch.isRunning ? 'Tạm dừng' : 'Bắt đầu',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: _stopwatch.isRunning
-                              ? Colors.orange.shade700
-                              : Colors.green.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  // Nút Lap
-                  Column(
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade600,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.blue.withOpacity(0.4),
-                              blurRadius: 15,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          onPressed: _stopwatch.isRunning ? _recordLap : null,
-                          icon: const Icon(
-                            Icons.flag,
-                            size: 40,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Vòng',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  // Nút Reset
-                  Column(
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade600,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.red.withOpacity(0.4),
-                              blurRadius: 15,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          onPressed: _resetStopwatch,
-                          icon: const Icon(
-                            Icons.refresh,
-                            size: 40,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Đặt lại',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 40),
-              // Danh sách các vòng
-              if (_laps.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                // Hiển thị đồng hồ bấm giờ
                 Container(
-                  padding: const EdgeInsets.all(15),
+                  padding: const EdgeInsets.all(35),
                   decoration: BoxDecoration(
-                    color: Colors.teal.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.teal.shade200),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.list_alt, color: Colors.teal.shade700),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Danh sách vòng (${_laps.length})',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal.shade700,
-                        ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _laps.clear();
-                          });
-                        },
-                        icon: Icon(
-                          Icons.clear_all,
-                          color: Colors.teal.shade700,
-                        ),
-                        tooltip: 'Xóa tất cả',
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 15),
-                Container(
-                  constraints: const BoxConstraints(maxHeight: 300),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      colors: [Colors.teal.shade400, Colors.teal.shade700],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.2),
+                        color: Colors.teal.withOpacity(0.4),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _stopwatch.isRunning
+                            ? Icons.timer
+                            : Icons.timer_outlined,
+                        size: 50,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(height: 15),
+                      Text(
+                        displayTime,
+                        style: const TextStyle(
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 2,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 25),
+                // Các nút điều khiển
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Nút Start/Stop
+                    _buildControlButton(
+                      icon: _stopwatch.isRunning
+                          ? Icons.pause
+                          : Icons.play_arrow,
+                      label: _stopwatch.isRunning ? 'Dừng' : 'Bắt đầu',
+                      color: _stopwatch.isRunning
+                          ? Colors.orange.shade600
+                          : Colors.green.shade600,
+                      onPressed: _stopwatch.isRunning
+                          ? _stopStopwatch
+                          : _startStopwatch,
+                    ),
+                    // Nút Lap
+                    _buildControlButton(
+                      icon: Icons.flag,
+                      label: 'Vòng',
+                      color: Colors.blue.shade600,
+                      onPressed: _stopwatch.isRunning ? _recordLap : null,
+                    ),
+                    // Nút Reset
+                    _buildControlButton(
+                      icon: Icons.refresh,
+                      label: 'Đặt lại',
+                      color: Colors.red.shade600,
+                      onPressed: _resetStopwatch,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 25),
+                // Nút điều khiển bằng giọng nói
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: _isListening
+                          ? [Colors.red.shade300, Colors.red.shade500]
+                          : [Colors.teal.shade300, Colors.teal.shade500],
+                    ),
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (_isListening ? Colors.red : Colors.teal)
+                            .withOpacity(0.3),
                         blurRadius: 10,
                         offset: const Offset(0, 3),
                       ),
                     ],
                   ),
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: _laps.length,
-                    separatorBuilder: (context, index) =>
-                        Divider(height: 1, color: Colors.grey.shade300),
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        leading: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.teal.shade100,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${_laps.length - index}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.teal.shade700,
-                              ),
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          _laps[index],
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        trailing: Icon(
-                          Icons.access_time,
-                          color: Colors.teal.shade400,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ] else
-                Container(
-                  padding: const EdgeInsets.all(30),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
                   child: Column(
                     children: [
-                      Icon(
-                        Icons.timelapse,
-                        size: 60,
-                        color: Colors.grey.shade400,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            _isListening ? Icons.mic : Icons.mic_none,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _isListening
+                                ? 'Đang nghe...'
+                                : 'Điều khiển giọng nói',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 15),
-                      Text(
-                        'Chưa có vòng nào được ghi lại',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey.shade600,
+                      if (_voiceText.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '"$_voiceText"',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontStyle: FontStyle.italic,
+                              fontSize: 13,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
-                        textAlign: TextAlign.center,
+                      ],
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: _isListening
+                            ? _stopListeningVoice
+                            : _startListening,
+                        icon: Icon(
+                          _isListening ? Icons.stop : Icons.mic,
+                          size: 20,
+                        ),
+                        label: Text(
+                          _isListening ? 'Dừng' : 'Nhấn để nói',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: _isListening
+                              ? Colors.red
+                              : Colors.teal,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       Text(
-                        'Nhấn nút "Vòng" để ghi lại thời gian',
+                        'Lệnh: "Bắt đầu", "Dừng", "Vòng", "Đặt lại"',
                         style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade500,
+                          fontSize: 11,
+                          color: Colors.white.withOpacity(0.9),
                         ),
                         textAlign: TextAlign.center,
                       ),
                     ],
                   ),
                 ),
-              const SizedBox(height: 30),
-              // Hướng dẫn
-              Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                const SizedBox(height: 20),
+                // Danh sách các vòng
+                if (_laps.isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.teal.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.teal.shade200),
+                    ),
+                    child: Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.blue.shade700),
+                        Icon(
+                          Icons.list_alt,
+                          color: Colors.teal.shade700,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Text(
-                          'Hướng dẫn sử dụng:',
+                          'Danh sách vòng (${_laps.length})',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
                             fontSize: 16,
-                            color: Colors.blue.shade700,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.teal.shade700,
                           ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _laps.clear();
+                            });
+                          },
+                          icon: Icon(
+                            Icons.clear_all,
+                            color: Colors.teal.shade700,
+                            size: 20,
+                          ),
+                          tooltip: 'Xóa tất cả',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      '• Nhấn "Bắt đầu" để bắt đầu đếm thời gian\n'
-                      '• Nhấn "Tạm dừng" để dừng tạm thời\n'
-                      '• Nhấn "Vòng" để ghi lại thời gian hiện tại\n'
-                      '• Nhấn "Đặt lại" để reset về 0\n'
-                      '• Độ chính xác: 1/100 giây',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.blue.shade900,
-                        height: 1.5,
-                      ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 250),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.15),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ],
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: _laps.length,
+                      separatorBuilder: (context, index) =>
+                          Divider(height: 1, color: Colors.grey.shade300),
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          leading: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: Colors.teal.shade100,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${_laps.length - index}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.teal.shade700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            _laps[index],
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.access_time,
+                            color: Colors.teal.shade400,
+                            size: 18,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ] else
+                  Container(
+                    padding: const EdgeInsets.all(25),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.timelapse,
+                          size: 50,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Chưa có vòng nào',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey.shade600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Nhấn "Vòng" để ghi lại',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade500,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildControlButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback? onPressed,
+  }) {
+    final bool isDisabled = onPressed == null;
+    return Column(
+      children: [
+        Container(
+          width: 70,
+          height: 70,
+          decoration: BoxDecoration(
+            color: isDisabled ? Colors.grey.shade300 : color,
+            shape: BoxShape.circle,
+            boxShadow: isDisabled
+                ? []
+                : [
+                    BoxShadow(
+                      color: color.withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+          ),
+          child: IconButton(
+            onPressed: onPressed,
+            icon: Icon(
+              icon,
+              size: 32,
+              color: isDisabled ? Colors.grey.shade500 : Colors.white,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: isDisabled ? Colors.grey.shade500 : color,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -39,25 +39,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Ứng dụng đa năng',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue.shade700, Colors.blue.shade400],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-      ),
       body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

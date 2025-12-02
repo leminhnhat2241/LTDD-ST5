@@ -130,11 +130,6 @@ class _ImageTranslateOverlayScreenState
     super.dispose();
   }
 
-  String get _recognizedText =>
-      _textBlocks.map((b) => b.originalText).join('\n');
-  String get _translatedText =>
-      _textBlocks.map((b) => b.translatedText).join('\n');
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
